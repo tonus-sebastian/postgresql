@@ -2,6 +2,7 @@ apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
 metadata:
   name: postgres-scc
+  namespace: postgresql
 allowHostDirVolumePlugin: false
 allowHostIPC: false
 allowHostNetwork: false
@@ -22,9 +23,10 @@ users:
 - system:serviceaccount:postgresql:default
 ---
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: postgres
+  namespace: postgresql
 spec:
   serviceName: "postgres"
   replicas: 1
@@ -36,13 +38,17 @@ spec:
       labels:
         app: postgres
     spec:
+      securityContext:
+        runAsUser: 999 # OpenShift's restricted SCC requires non-root users
+        runAsGroup: 999
+        fsGroup: 999
       containers:
       - name: postgres
-        image: postgres:15
+        image: public.ecr.aws/r2u9e8v0/postgresql:latest
         ports:
         - containerPort: 5432
         volumeMounts:
-        - name: postgres-data
+        - name: postgres-storage
           mountPath: /var/lib/postgresql/data
         env:
         - name: POSTGRES_USER
@@ -51,23 +57,22 @@ spec:
           value: "yourpassword"
         - name: POSTGRES_DB
           value: "yourdb"
-        - name: PGDATA
+        - name: postgres-storage
           value: "/var/lib/postgresql/data/pgdata"
         securityContext:
-          runAsUser: 1001 # OpenShift's restricted SCC requires non-root users
-  volumeClaimTemplates:
-  - metadata:
-      name: postgres-data
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      resources:
-        requests:
-          storage: 10Gi
+          runAsUser: 999 # OpenShift's restricted SCC requires non-root users
+          runAsGroup: 999
+          fsGroup: 999
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgre-single
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: postgres
+  namespace: postgresql
 spec:
   selector:
     app: postgres
@@ -79,6 +84,7 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: postgres
+  namespace: postgresql
 spec:
   to:
     kind: Service
