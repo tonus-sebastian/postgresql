@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgadmin
+  template:
+    metadata:
+      labels:
+        app: pgadmin
+    spec:
+      securityContext:
+        fsGroup: 1000  # Ensures the group ownership of mounted volumes is correct
+        runAsUser: 1000  # Ensures the container runs as the pgAdmin user
+      containers:
+        - name: pgadmin
+          image: quay.klgsys.com/mirror/pgadmin
+          ports:
+            - containerPort: 80
+          env:
+            - name: PGADMIN_DEFAULT_EMAIL
+              value: xxx
+            - name: PGADMIN_DEFAULT_PASSWORD
+              value: xxx
+          volumeMounts:
+            - name: pgadmin-storage
+              mountPath: /var/lib/pgadmin  # Default data directory for pgAdmin
+      volumes:
+        - name: pgadmin-storage
+          persistentVolumeClaim:
+            claimName: pgadmin-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgadmin-service
+  namespace: default
+spec:
+  selector:
+    app: pgadmin
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+#---
+#apiVersion: route.openshift.io/v1
+#kind: Route
+#metadata:
+#  name: postgres
+#  namespace: default
+#spec:
+#  to:
+#    kind: Service
+#    name: postgres
+#  port:
+#    targetPort: 80
