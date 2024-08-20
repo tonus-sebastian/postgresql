@@ -23,9 +23,15 @@ spec:
             - containerPort: 80
           env:
             - name: PGADMIN_DEFAULT_EMAIL
-              value: xxx
+              valueFrom:
+                secretKeyRef:
+                  name: pgadmin-secret
+                  key: PGADMIN_DEFAULT_EMAIL
             - name: PGADMIN_DEFAULT_PASSWORD
-              value: xxx
+              valueFrom:
+                secretKeyRef:
+                  name: pgadmin-secret
+                  key: PGADMIN_DEFAULT_PASSWORD
           volumeMounts:
             - name: pgadmin-storage
               mountPath: /var/lib/pgadmin  # Default data directory for pgAdmin
@@ -46,15 +52,18 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 80
-#---
-#apiVersion: route.openshift.io/v1
-#kind: Route
-#metadata:
-#  name: postgres
-#  namespace: default
-#spec:
-#  to:
-#    kind: Service
-#    name: postgres
-#  port:
-#    targetPort: 80
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: pgadmin-service
+  namespace: default
+spec:
+  host: pgadmin-dashboard.apps.okd4.okd.stag
+  to:
+    kind: Service
+    name: pgadmin-service
+    weight: 100
+  port:
+    targetPort: 80
+  wildcardPolicy: None
