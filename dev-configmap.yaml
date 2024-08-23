@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: default
+data:
+  postgresql.conf: |
+    # PostgreSQL configuration file
+    listen_addresses = '*'
+    max_connections = 100
+    shared_buffers = 128MB
+    log_statement = 'all'
+    log_directory = 'pg_log'
+    log_filename = 'postgresql.log'
