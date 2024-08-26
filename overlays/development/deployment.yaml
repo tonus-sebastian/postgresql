@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  template:
+    spec:
+      containers:
+      - name: postgres
+        resources:
+          requests:
+            memory: "288Mi"
+          limits:
+            memory: "512Mi"
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+          env:
+          - name: POSTGRES_USER
+            value: "admin"
+          - name: POSTGRES_DB
+            value: "db-admin-dev"
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: POSTGRES_PASSWORD
+          - name: postgres-storage
+            value: "/var/lib/postgresql/data/pgdata"
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgre-dev
