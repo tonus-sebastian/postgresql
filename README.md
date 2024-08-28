@@ -17,5 +17,6 @@
 
 ```
 ## Apply Kustomize in ArgoCD
-deploy with argo UI and you see detail in below 
+deploy with argo UI and you see detail in below dan don't forget choose parameters kustomize
 ![Argo App Source Section](picture/argocd.png)
+
