@@ -16,3 +16,6 @@
     └── production
 
 ```
+## Apply Kustomize in ArgoCD
+deploy with argo UI and you see detail in below 
+![Argo App Source Section](pictures/argocd.png)
